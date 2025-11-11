@@ -1,0 +1,40 @@
+name: Deploy - master
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{secrets.NETLIFY_AUTH_TOKEN_MASTER}}
+      NETLIFY_SITE_ID: ${{secrets.NETLIFY_SITE_ID_MASTER}}
+      DATABASE_URL: ${{secrets.DATABASE_URL_MASTER}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build (se aplicável)
+        run: |
+          echo "Se for apenas index.html não há build. Ajuste aqui se usar npm/yarn."
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
+      - name: Deploy to Netlify (main)
+        run: |
+          netlify deploy --auth "$NETLIFY_AUTH_TOKEN" --site "$NETLIFY_SITE_ID" --dir ./ --prod
+
+      - name: Install psql client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Run DB migrations (main)
+        run: |
+          #usa DATABASE_URL que deve ser algo como: postgres://user:pass@host:port/dbname
+          echo "Executando migrations/001_create_tables.sql em MAIN..."
+          psql "$DATABASE_URL" -f migrations/001_create_tables.sql
