@@ -15,6 +15,7 @@ jobs:
       NETLIFY_AUTH_TOKEN: ${{secrets.NETLIFY_AUTH_TOKEN_MASTER}}
       NETLIFY_SITE_ID: ${{secrets.NETLIFY_SITE_ID_MASTER}}
       DATABASE_URL: ${{secrets.DATABASE_URL_MASTER}}
+      
     steps:
       - name: Checkout
         uses: actions/checkout@v4
