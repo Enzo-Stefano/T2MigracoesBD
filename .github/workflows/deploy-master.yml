@@ -36,5 +36,3 @@ jobs:
       - name: Run DB migrations (main)
         run: |
           #usa DATABASE_URL que deve ser algo como: postgres://user:pass@host:port/dbname
-          echo "Executando migrations/001_create_tables.sql em MAIN..."
-          psql "$DATABASE_URL" -f migrations/001_create_tables.sql
