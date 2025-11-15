@@ -1,0 +1,59 @@
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'index.html'
+      - 'public/**'
+      - 'build/**'
+      - 'dist/**'
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Fazer deploy no Netlify?'
+        required: false
+        default: 'true'
+      deploy_dir:
+        description: 'Diretório a ser publicado (ex: ./ ou ./public)'
+        required: false
+        default: './'
+
+jobs:
+  deploy:
+    name: Deploy to Netlify
+    runs-on: ubuntu-latest
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
+      - name: Validate Netlify secrets
+        run: |
+          if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ]; then
+            echo "ERRO: secret NETLIFY_AUTH_TOKEN não definido."
+            exit 1
+          fi
+          if [ -z "${{ secrets.NETLIFY_SITE_ID }}" ]; then
+            echo "ERRO: secret NETLIFY_SITE_ID não definido."
+            exit 1
+          fi
+
+      - name: Deploy to Netlify (prod)
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          set -euo pipefail
+          # workflow_dispatch fornece deploy_dir; para push, o default do input também é './'
+          DEPLOY_DIR="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_dir != '' && github.event.inputs.deploy_dir || './' }}"
+          if [ -z "$DEPLOY_DIR" ]; then DEPLOY_DIR="./"; fi
+
+          echo "Deploying $DEPLOY_DIR to Netlify site $NETLIFY_SITE_ID"
+          npx netlify-cli deploy --prod --dir="$DEPLOY_DIR" --site="$NETLIFY_SITE_ID"

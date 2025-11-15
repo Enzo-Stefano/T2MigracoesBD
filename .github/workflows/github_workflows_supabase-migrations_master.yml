@@ -1,14 +1,7 @@
-# Aplica migrations no Supabase remoto.
-# Gatilhos:
-# - push na branch main somente quando arquivos em supabase/migrations/ mudarem
-# - workflow_dispatch para executar manualmente
-#
-# Secrets necessários:
-# - SUPABASE_ACCESS_TOKEN
-# - SUPABASE_PROJECT_REF
+
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
     paths:
       - 'supabase/migrations/**'
   workflow_dispatch:
@@ -22,9 +15,7 @@ jobs:
   migrate:
     name: Aplicar migrations no Supabase (CLI)
     runs-on: ubuntu-latest
-    # Executa automaticamente apenas quando houver mudanças em supabase/migrations/** (push)
-    # ou manualmente via workflow_dispatch com run_migrations = true
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_migrations == 'true') }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_migrations == 'true') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,6 +27,17 @@ jobs:
 
       - name: Install Supabase CLI
         run: npm install -g supabase
+
+      - name: Validate secrets
+        run: |
+          if [ -z "${{ secrets.SUPABASE_ACCESS_TOKEN }}" ]; then
+            echo "ERRO: secret SUPABASE_ACCESS_TOKEN não definido."
+            exit 1
+          fi
+          if [ -z "${{ secrets.SUPABASE_PROJECT_REF }}" ]; then
+            echo "ERRO: secret SUPABASE_PROJECT_REF não definido."
+            exit 1
+          fi
 
       - name: Apply Supabase migrations (supabase db push)
         env:
@@ -52,7 +54,7 @@ jobs:
           echo "Autenticando Supabase CLI"
           supabase login --token "$SUPABASE_ACCESS_TOKEN"
 
-          echo "Linkando repositório ao projeto $SUPABASE_PROJECT_REF"
+          echo "Linkando repositório ao projeto $SUPABASE_PROJECT_REF (ignora erro se já linkado)"
           supabase link --project-ref "$SUPABASE_PROJECT_REF" || true
 
           echo "Aplicando migrations (supabase db push) para $SUPABASE_PROJECT_REF"
