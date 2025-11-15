@@ -13,9 +13,9 @@ on:
         required: false
         default: 'true'
       deploy_dir:
-        description: 'Diretório a ser publicado (ex: ./ ou ./public)'
+        description: 'Diretório a ser publicado (ex: ./ or ./public)'
         required: false
-        default: './'
+        default: './public'
 
 jobs:
   deploy:
@@ -37,11 +37,11 @@ jobs:
       - name: Validate Netlify secrets
         run: |
           if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN_MASTER }}" ]; then
-            echo "ERRO: secret NETLIFY_AUTH_TOKEN não definido."
+            echo "ERRO: secret NETLIFY_AUTH_TOKEN_MASTER não definido."
             exit 1
           fi
           if [ -z "${{ secrets.NETLIFY_SITE_ID_MASTER }}" ]; then
-            echo "ERRO: secret NETLIFY_SITE_ID não definido."
+            echo "ERRO: secret NETLIFY_SITE_ID_MASTER não definido."
             exit 1
           fi
 
@@ -51,9 +51,13 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_MASTER }}
         run: |
           set -euo pipefail
-          # workflow_dispatch fornece deploy_dir; para push, o default do input também é './'
-          DEPLOY_DIR="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_dir != '' && github.event.inputs.deploy_dir || './' }}"
-          if [ -z "$DEPLOY_DIR" ]; then DEPLOY_DIR="./"; fi
+          # usa o input deploy_dir (default ./public); fallback para ./public se vazio
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            DEPLOY_DIR="${{ github.event.inputs.deploy_dir }}"
+          else
+            DEPLOY_DIR="./public"
+          fi
+          if [ -z "$DEPLOY_DIR" ]; then DEPLOY_DIR="./public"; fi
 
           echo "Deploying $DEPLOY_DIR to Netlify site $NETLIFY_SITE_ID"
           npx netlify-cli deploy --prod --dir="$DEPLOY_DIR" --site="$NETLIFY_SITE_ID"
