@@ -1,4 +1,0 @@
-CREATE TABLE IF NOT EXISTS tabela (
-    id SERIAL PRIMARY KEY,
-    descricao TEXT NOT NULL
-);
