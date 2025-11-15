@@ -36,19 +36,19 @@ jobs:
 
       - name: Validate Netlify secrets
         run: |
-          if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ]; then
+          if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN_MASTER }}" ]; then
             echo "ERRO: secret NETLIFY_AUTH_TOKEN não definido."
             exit 1
           fi
-          if [ -z "${{ secrets.NETLIFY_SITE_ID }}" ]; then
+          if [ -z "${{ secrets.NETLIFY_SITE_ID_MASTER }}" ]; then
             echo "ERRO: secret NETLIFY_SITE_ID não definido."
             exit 1
           fi
 
       - name: Deploy to Netlify (prod)
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN_MASTER }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_MASTER }}
         run: |
           set -euo pipefail
           # workflow_dispatch fornece deploy_dir; para push, o default do input também é './'
