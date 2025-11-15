@@ -1,0 +1,59 @@
+# Aplica migrations no Supabase remoto.
+# Gatilhos:
+# - push na branch main somente quando arquivos em supabase/migrations/ mudarem
+# - workflow_dispatch para executar manualmente
+#
+# Secrets necessários:
+# - SUPABASE_ACCESS_TOKEN
+# - SUPABASE_PROJECT_REF
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+    inputs:
+      run_migrations:
+        description: 'Executar migrações no Supabase?'
+        required: false
+        default: 'true'
+
+jobs:
+  migrate:
+    name: Aplicar migrations no Supabase (CLI)
+    runs-on: ubuntu-latest
+    # Executa automaticamente apenas quando houver mudanças em supabase/migrations/** (push)
+    # ou manualmente via workflow_dispatch com run_migrations = true
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_migrations == 'true') }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Supabase CLI
+        run: npm install -g supabase
+
+      - name: Apply Supabase migrations (supabase db push)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+
+          if [ ! -d "./supabase/migrations" ]; then
+            echo "ERRO: diretório supabase/migrations não encontrado. Nada a aplicar."
+            exit 1
+          fi
+
+          echo "Autenticando Supabase CLI"
+          supabase login --token "$SUPABASE_ACCESS_TOKEN"
+
+          echo "Linkando repositório ao projeto $SUPABASE_PROJECT_REF"
+          supabase link --project-ref "$SUPABASE_PROJECT_REF" || true
+
+          echo "Aplicando migrations (supabase db push) para $SUPABASE_PROJECT_REF"
+          supabase db push --project-ref "$SUPABASE_PROJECT_REF"
