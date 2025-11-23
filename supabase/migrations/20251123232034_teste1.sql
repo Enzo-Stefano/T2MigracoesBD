@@ -1,0 +1,1 @@
+INSERT INTO TABLE produtos (nome, preco, estoque) VALUES ('Produto A', 19.99, 100);
