@@ -19,9 +19,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Instalar Supabase CLI via npm
+      - name: Instalar Supabase CLI (oficial via script)
         run: |
-          npm install -g supabase
+          curl -sL https://github.com/supabase/cli/releases/latest/download/install.sh | sh
+          echo "$HOME/.supabase/bin" >> $GITHUB_PATH
           supabase --version
 
       - name: Validate secrets
