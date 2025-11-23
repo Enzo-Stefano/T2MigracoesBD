@@ -19,16 +19,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install Supabase CLI
-        run: pnpm add -g supabase
+      - name: Instalar Supabase CLI (oficial via script)
+        run: |
+          curl -sL https://github.com/supabase/cli/releases/latest/download/install.sh | sh
+          echo "$HOME/.supabase/bin" >> $GITHUB_PATH
 
       - name: Validate secrets
         run: |
