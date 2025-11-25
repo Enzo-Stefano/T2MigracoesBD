@@ -1,3 +1,3 @@
-create table produtos{
+create table produtos(
     id int
-};
+);
