@@ -72,7 +72,7 @@ jobs:
             exit 1
           fi
 
-      - name: Deploy do site para Netlify (opcional)
+      - name: Deploy do site para Netlify
         if: ${{ env.NETLIFY_AUTH_TOKEN != '' && env.NETLIFY_SITE_ID != '' }}
         uses: nwtgck/actions-netlify@v1.2.0
         with:
@@ -81,18 +81,3 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ env.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
-
-      - name: Skip Netlify deploy when Netlify secrets not present
-        if: ${{ env.NETLIFY_AUTH_TOKEN == '' || env.NETLIFY_SITE_ID == '' }}
-        run: |
-          echo "Netlify secrets não configuradas. Pulando deploy do site."
-          echo "Para ativar deploy automático no Netlify, adicione os secrets: NETLIFY_AUTH_TOKEN e NETLIFY_SITE_ID_PREPROD."
-
-      - name: Emitir resumo
-        run: |
-          echo "Preprod pipeline finalizada. Migrations aplicadas para ${SUPABASE_PROJECT_REF_PREPROD}."
-          if [ -n "${NETLIFY_AUTH_TOKEN:-}" ]; then
-            echo "Tentou deploy no Netlify (verifique a etapa de deploy para logs)."
-          else
-            echo "Deploy do site não configurado (Netlify não detectado)."
-          fi
