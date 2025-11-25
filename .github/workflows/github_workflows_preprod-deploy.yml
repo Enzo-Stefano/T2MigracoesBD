@@ -3,7 +3,7 @@ name: Preprod Deploy
 on:
   schedule:
     # executa todo dia às 02:30 UTC (ajuste o cron se quiser outro horário)
-    - cron: '59 22 * * *'
+    - cron: '00 23 * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -50,7 +50,7 @@ jobs:
           echo "Aplicando migrations no projeto preprod (${SUPABASE_PROJECT_REF_PREPROD})"
           supabase db push
 
-      - name: Preparar site estático para deploy (diretório: ./public)
+      - name: Preparar site estático para deploy (diretório ./public)
         run: |
           set -euo pipefail
           if [ -d "./public" ]; then
