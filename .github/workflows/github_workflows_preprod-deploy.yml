@@ -2,7 +2,6 @@ name: Preprod Deploy
 
 on:
   schedule:
-    # 20:04 local (Brasília - UTC-3) -> 23:04 UTC
     - cron: '12 23 * * *'
   workflow_dispatch: {}
 
@@ -13,7 +12,7 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF_PREPROD: ${{ secrets.SUPABASE_PROJECT_REF_PREPROD }}
-      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN_MASTER }}
       NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_PREPROD }}
     steps:
       - name: Checkout preprod branch (fetch code and migrations)
