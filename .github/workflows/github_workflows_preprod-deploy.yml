@@ -3,7 +3,7 @@ name: Preprod Deploy
 on:
   schedule:
     # executa todo dia às 02:30 UTC (ajuste o cron se quiser outro horário)
-    - cron: '43 19 * * *'
+    - cron: '30 2 * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -11,9 +11,10 @@ jobs:
     name: Deploy Preprod (migrations + site)
     runs-on: ubuntu-latest
     env:
+      # mapear os secrets para variáveis de ambiente do job
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF_PREPROD: ${{ secrets.SUPABASE_PROJECT_REF_PREPROD }}
-      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN_MASTER }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_PREPROD }}
     steps:
       - name: Checkout repository
@@ -49,7 +50,7 @@ jobs:
           echo "Aplicando migrations no projeto preprod (${SUPABASE_PROJECT_REF_PREPROD})"
           supabase db push
 
-      - name: Preparar site estático para deploy (diretório ./public)
+      - name: Preparar site estático para deploy (diretório: ./public)
         run: |
           set -euo pipefail
           if [ -d "./public" ]; then
@@ -60,12 +61,28 @@ jobs:
             exit 1
           fi
 
-      - name: Deploy do site para Netlify
-        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' && secrets.NETLIFY_SITE_ID != '' }}
+      - name: Deploy do site para Netlify (opcional)
+        # usar env. verifica se as variáveis mapeadas não estão vazias
+        if: ${{ env.NETLIFY_AUTH_TOKEN != '' && env.NETLIFY_SITE_ID != '' }}
         uses: nwtgck/actions-netlify@v1.2.0
         with:
           publish-dir: ./public
           production-deploy: true
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ env.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
+
+      - name: Skip Netlify deploy when Netlify secrets not present
+        if: ${{ env.NETLIFY_AUTH_TOKEN == '' || env.NETLIFY_SITE_ID == '' }}
+        run: |
+          echo "Netlify secrets não configuradas. Pulando deploy do site."
+          echo "Para ativar deploy automático no Netlify, adicione os secrets: NETLIFY_AUTH_TOKEN e NETLIFY_SITE_ID."
+
+      - name: Emitir resumo
+        run: |
+          echo "Preprod pipeline finalizada. Migrations aplicadas para ${SUPABASE_PROJECT_REF_PREPROD}."
+          if [ -n "${NETLIFY_AUTH_TOKEN}" ]; then
+            echo "Tentou deploy no Netlify (verifique a etapa de deploy para logs)."
+          else
+            echo "Deploy do site não configurado (Netlify não detectado)."
+          fi
