@@ -49,7 +49,7 @@ jobs:
           echo "Aplicando migrations no projeto preprod (${SUPABASE_PROJECT_REF_PREPROD})"
           supabase db push
 
-      - name: Preparar site estático para deploy (diretório: ./public)
+      - name: Preparar site estático para deploy (diretório ./public)
         run: |
           set -euo pipefail
           if [ -d "./public" ]; then
