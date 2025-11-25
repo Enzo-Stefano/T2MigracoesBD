@@ -3,7 +3,7 @@ name: Preprod Deploy
 on:
   schedule:
     # executa todo dia às 02:30 UTC (ajuste o cron se quiser outro horário)
-    - cron: '30 2 * * *'
+    - cron: '43 19 * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -13,8 +13,8 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF_PREPROD: ${{ secrets.SUPABASE_PROJECT_REF_PREPROD }}
-      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN_MASTER }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_PREPROD }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
