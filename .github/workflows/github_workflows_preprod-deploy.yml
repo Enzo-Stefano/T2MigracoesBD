@@ -3,7 +3,7 @@ name: Preprod Deploy
 on:
   schedule:
     # executa todo dia às 02:30 UTC (ajuste o cron se quiser outro horário)
-    - cron: '30 2 * * *'
+    - cron: '54 19 * * *'
   workflow_dispatch: {}
 
 jobs:
