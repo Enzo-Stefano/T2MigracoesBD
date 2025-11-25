@@ -2,22 +2,35 @@ name: Preprod Deploy
 
 on:
   schedule:
-    # executa todo dia 02:30 UTC
-    - cron: '16 19 * * *'
+    # 20:04 local (Brasília - UTC-3) -> 23:04 UTC
+    - cron: '12 23 * * *'
   workflow_dispatch: {}
 
 jobs:
   preprod-deploy:
-    name: Deploy Preprod (migrations + site)
+    name: Deploy Preprod (migrations + site from preprod branch)
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF_PREPROD: ${{ secrets.SUPABASE_PROJECT_REF_PREPROD }}
       NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_PREPROD }}
     steps:
-      - name: Checkout repository
+      - name: Checkout preprod branch (fetch code and migrations)
         uses: actions/checkout@v4
+        with:
+          ref: preprod
+          fetch-depth: 0
+
+      - name: Confirm branch is preprod
+        run: |
+          set -euo pipefail
+          BRANCH=$(git branch --show-current || echo "")
+          echo "Checked out branch: $BRANCH"
+          if [ "$BRANCH" != "preprod" ]; then
+            echo "Esperado branch 'preprod' após checkout. Abortando para evitar alterações em ambiente errado."
+            exit 1
+          fi
 
       - name: Instalar Supabase CLI (via action oficial)
         uses: supabase/setup-cli@v1
@@ -26,11 +39,11 @@ jobs:
 
       - name: Validar secrets essenciais
         run: |
-          if [ -z "${SUPABASE_ACCESS_TOKEN}" ]; then
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
             echo "ERRO: SUPABASE_ACCESS_TOKEN não definido nos Secrets."
             exit 1
           fi
-          if [ -z "${SUPABASE_PROJECT_REF_PREPROD}" ]; then
+          if [ -z "${SUPABASE_PROJECT_REF_PREPROD:-}" ]; then
             echo "ERRO: SUPABASE_PROJECT_REF_PREPROD não definido nos Secrets."
             exit 1
           fi
@@ -60,11 +73,27 @@ jobs:
             exit 1
           fi
 
-      - name: Deploy do site para Netlify
-        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' && secrets.NETLIFY_SITE_ID != '' }}
+      - name: Deploy do site para Netlify (opcional)
+        if: ${{ env.NETLIFY_AUTH_TOKEN != '' && env.NETLIFY_SITE_ID != '' }}
         uses: nwtgck/actions-netlify@v1.2.0
         with:
           publish-dir: ./public
           production-deploy: true
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_AUTH_TOKEN: ${{ env.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
+
+      - name: Skip Netlify deploy when Netlify secrets not present
+        if: ${{ env.NETLIFY_AUTH_TOKEN == '' || env.NETLIFY_SITE_ID == '' }}
+        run: |
+          echo "Netlify secrets não configuradas. Pulando deploy do site."
+          echo "Para ativar deploy automático no Netlify, adicione os secrets: NETLIFY_AUTH_TOKEN e NETLIFY_SITE_ID_PREPROD."
+
+      - name: Emitir resumo
+        run: |
+          echo "Preprod pipeline finalizada. Migrations aplicadas para ${SUPABASE_PROJECT_REF_PREPROD}."
+          if [ -n "${NETLIFY_AUTH_TOKEN:-}" ]; then
+            echo "Tentou deploy no Netlify (verifique a etapa de deploy para logs)."
+          else
+            echo "Deploy do site não configurado (Netlify não detectado)."
+          fi
