@@ -2,8 +2,8 @@ name: Preprod Deploy
 
 on:
   schedule:
-    # executa todo dia 02:30 UTC
-    - cron: '16 19 * * *'
+    # executa todo dia às 02:30 UTC (ajuste o cron se quiser outro horário)
+    - cron: '30 2 * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -68,3 +68,4 @@ jobs:
           production-deploy: true
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
