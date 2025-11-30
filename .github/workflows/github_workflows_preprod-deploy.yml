@@ -2,7 +2,7 @@ name: Preprod Deploy
 
 on:
   schedule:
-    - cron: '12 23 * * *'
+    - cron: '22 21 * * *'
   workflow_dispatch: {}
 
 jobs:
