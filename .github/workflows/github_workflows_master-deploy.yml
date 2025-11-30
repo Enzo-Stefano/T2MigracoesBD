@@ -21,7 +21,14 @@ jobs:
       - name: Verificar alterações em migrations
         id: check_migrations
         run: |
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^supabase/migrations/'; then
+          BEFORE="${{ github.event.before }}"
+          SHA="${{ github.sha }}"
+          if git cat-file -e "$BEFORE" 2>/dev/null; then
+            RANGE="$BEFORE $SHA"
+          else
+            RANGE="$(git rev-parse $SHA^) $SHA"
+          fi
+          if git diff --name-only $RANGE | grep -q '^supabase/migrations/'; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
@@ -69,7 +76,14 @@ jobs:
       - name: Verificar alterações em arquivos de deploy
         id: check_deploy
         run: |
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(index.html|public/|build/|dist/)'; then
+          BEFORE="${{ github.event.before }}"
+          SHA="${{ github.sha }}"
+          if git cat-file -e "$BEFORE" 2>/dev/null; then
+            RANGE="$BEFORE $SHA"
+          else
+            RANGE="$(git rev-parse $SHA^) $SHA"
+          fi
+          if git diff --name-only $RANGE | grep -E '^(index.html|public/|build/|dist/)'; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
