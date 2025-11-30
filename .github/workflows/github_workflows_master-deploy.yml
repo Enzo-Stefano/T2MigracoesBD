@@ -1,5 +1,3 @@
-name: Supabase Migrations & Netlify Deploy CI
-
 on:
   push:
     branches: [ "master" ]
@@ -118,6 +116,21 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_MASTER }}
         run: |
           set -euo pipefail
-          DEPLOY_DIR="./public"
+
+          # Detecta automaticamente a pasta de deploy preferida (public > build > dist > .)
+          if [ -d "./public" ]; then
+            DEPLOY_DIR="./public"
+          elif [ -d "./build" ]; then
+            DEPLOY_DIR="./build"
+          elif [ -d "./dist" ]; then
+            DEPLOY_DIR="./dist"
+          elif [ -f "./index.html" ]; then
+            DEPLOY_DIR="."
+          else
+            echo "ERRO: nenhum diretório de deploy (public/build/dist) ou index.html encontrado."
+            exit 1
+          fi
+
           echo "Deploying $DEPLOY_DIR to Netlify site $NETLIFY_SITE_ID"
-          npx netlify-cli deploy --prod --dir="$DEPLOY_DIR" --site="$NETLIFY_SITE_ID"
+          # Use 'netlify' (instalado globalmente acima) — remova os '//' errados e garanta a flag --site correta
+          netlify deploy --prod --dir="$DEPLOY_DIR" --site="$NETLIFY_SITE_ID"
