@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Verificar alterações em migrations
         id: check_migrations
@@ -70,6 +72,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Verificar alterações em arquivos de deploy
         id: check_deploy
@@ -132,5 +136,4 @@ jobs:
           fi
 
           echo "Deploying $DEPLOY_DIR to Netlify site $NETLIFY_SITE_ID"
-          # Use 'netlify' (instalado globalmente acima) — remova os '//' errados e garanta a flag --site correta
           netlify deploy --prod --dir="$DEPLOY_DIR" --site="$NETLIFY_SITE_ID"
