@@ -10,7 +10,7 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN_DEV }}
       SUPABASE_PROJECT_REF_DEV: ${{ secrets.SUPABASE_PROJECT_REF_DEV }}
-      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN_MASTER }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN_DEV }}
       NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_DEV }}
     steps:
       - name: Checkout dev branch (fetch code and migrations)
